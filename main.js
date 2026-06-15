@@ -95,10 +95,29 @@ function move(dx) {
   }
 }
 
-function softDrop() {
+// Write the active piece into the board grid.
+function lockPiece() {
+  for (let y = 0; y < piece.matrix.length; y++) {
+    for (let x = 0; x < piece.matrix[y].length; x++) {
+      if (piece.matrix[y][x]) {
+        board[piece.y + y][piece.x + x] = piece.color;
+      }
+    }
+  }
+  spawn();
+}
+
+// Move the piece down one row, or lock it if it can't move.
+function drop() {
   if (isValid(piece.matrix, piece.x, piece.y + 1)) {
     piece.y += 1;
+  } else {
+    lockPiece();
   }
+}
+
+function softDrop() {
+  drop();
 }
 
 function rotate() {
