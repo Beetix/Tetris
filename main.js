@@ -222,7 +222,20 @@ function render() {
 }
 
 // --- Game loop ---
-function loop() {
+const DROP_INTERVAL = 800; // ms between automatic drops
+let dropCounter = 0;
+let lastTime = 0;
+
+function loop(time = 0) {
+  const delta = time - lastTime;
+  lastTime = time;
+
+  dropCounter += delta;
+  if (dropCounter >= DROP_INTERVAL) {
+    drop();
+    dropCounter = 0;
+  }
+
   render();
   requestAnimationFrame(loop);
 }
