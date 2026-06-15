@@ -45,6 +45,7 @@ function nextType() {
 
 // --- Active piece ---
 let piece = null;
+let gameOver = false;
 
 function spawn() {
   const type = nextType();
@@ -58,6 +59,20 @@ function spawn() {
     x: Math.floor((COLS - matrix[0].length) / 2),
     y: 0,
   };
+  // If the fresh piece already collides, the stack reached the top.
+  if (!isValid(piece.matrix, piece.x, piece.y)) {
+    gameOver = true;
+  }
+}
+
+function restart() {
+  for (let y = 0; y < ROWS; y++) board[y].fill(0);
+  bag = [];
+  gameOver = false;
+  dropCounter = 0;
+  lastTime = 0;
+  spawn();
+  requestAnimationFrame(loop);
 }
 
 // --- Collision / validity ---
@@ -145,6 +160,13 @@ function rotate() {
 }
 
 document.addEventListener("keydown", (e) => {
+  if (gameOver) {
+    if (e.key === "Enter" || e.key === "r" || e.key === "R") {
+      restart();
+      e.preventDefault();
+    }
+    return;
+  }
   if (!piece) return;
   switch (e.key) {
     case "ArrowLeft":
@@ -219,6 +241,19 @@ function render() {
       }
     }
   }
+
+  if (gameOver) drawGameOver();
+}
+
+function drawGameOver() {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.72)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.font = "bold 32px system-ui, sans-serif";
+  ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 12);
+  ctx.font = "16px system-ui, sans-serif";
+  ctx.fillText("Press Enter to restart", canvas.width / 2, canvas.height / 2 + 24);
 }
 
 // --- Game loop ---
@@ -237,6 +272,8 @@ function loop(time = 0) {
   }
 
   render();
+
+  if (gameOver) return; // stop the loop; restart() will resume it
   requestAnimationFrame(loop);
 }
 
