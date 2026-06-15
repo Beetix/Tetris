@@ -95,6 +95,17 @@ function move(dx) {
   }
 }
 
+// Remove all completed rows and shift everything above down.
+function clearLines() {
+  for (let y = ROWS - 1; y >= 0; y--) {
+    if (board[y].every((cell) => cell !== 0)) {
+      board.splice(y, 1);
+      board.unshift(new Array(COLS).fill(0));
+      y++; // re-check the same row index after the shift
+    }
+  }
+}
+
 // Write the active piece into the board grid.
 function lockPiece() {
   for (let y = 0; y < piece.matrix.length; y++) {
@@ -104,6 +115,7 @@ function lockPiece() {
       }
     }
   }
+  clearLines();
   spawn();
 }
 
