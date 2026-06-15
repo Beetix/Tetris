@@ -60,6 +60,82 @@ function spawn() {
   };
 }
 
+// --- Collision / validity ---
+// Returns true if `matrix` placed at (offX, offY) fits within the board
+// and does not overlap any settled cell.
+function isValid(matrix, offX, offY) {
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < matrix[y].length; x++) {
+      if (!matrix[y][x]) continue;
+      const bx = offX + x;
+      const by = offY + y;
+      if (bx < 0 || bx >= COLS || by >= ROWS) return false;
+      if (by >= 0 && board[by][bx]) return false;
+    }
+  }
+  return true;
+}
+
+// Rotate a square matrix clockwise (transpose + reverse each row).
+function rotateCW(matrix) {
+  const size = matrix.length;
+  const result = matrix.map((row) => row.slice());
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      result[x][size - 1 - y] = matrix[y][x];
+    }
+  }
+  return result;
+}
+
+// --- Controls ---
+function move(dx) {
+  if (isValid(piece.matrix, piece.x + dx, piece.y)) {
+    piece.x += dx;
+  }
+}
+
+function softDrop() {
+  if (isValid(piece.matrix, piece.x, piece.y + 1)) {
+    piece.y += 1;
+  }
+}
+
+function rotate() {
+  const rotated = rotateCW(piece.matrix);
+  // Wall kick: try in place, then nudge left/right to fit
+  for (const dx of [0, -1, 1, -2, 2]) {
+    if (isValid(rotated, piece.x + dx, piece.y)) {
+      piece.matrix = rotated;
+      piece.x += dx;
+      return;
+    }
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (!piece) return;
+  switch (e.key) {
+    case "ArrowLeft":
+      move(-1);
+      break;
+    case "ArrowRight":
+      move(1);
+      break;
+    case "ArrowDown":
+      softDrop();
+      break;
+    case "ArrowUp":
+    case "x":
+    case "X":
+      rotate();
+      break;
+    default:
+      return;
+  }
+  e.preventDefault();
+});
+
 // --- Rendering ---
 function drawCell(x, y, color) {
   ctx.fillStyle = color;
